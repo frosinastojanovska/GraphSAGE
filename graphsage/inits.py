@@ -6,6 +6,7 @@ import numpy as np
 # https://github.com/tkipf/gcn
 # which is under an identical MIT license as GraphSAGE
 
+
 def uniform(shape, scale=0.05, name=None):
     """Uniform init."""
     initial = tf.random_uniform(shape, minval=-scale, maxval=scale, dtype=tf.float32)
@@ -23,6 +24,7 @@ def zeros(shape, name=None):
     """All zeros."""
     initial = tf.zeros(shape, dtype=tf.float32)
     return tf.Variable(initial, name=name)
+
 
 def ones(shape, name=None):
     """All ones."""
