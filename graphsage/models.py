@@ -4,8 +4,8 @@ import tensorflow as tf
 import math
 import numpy as np
 
-import graph_embedding_methods.graphsage.layers as layers
-import graph_embedding_methods.graphsage.metrics as metrics
+import graphsage.layers as layers
+import graphsage.metrics as metrics
 
 from .prediction import BipartiteEdgePredLayer
 from .aggregators import MeanAggregator, MaxPoolingAggregator, MeanPoolingAggregator, SeqAggregator, GCNAggregator

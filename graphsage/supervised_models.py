@@ -77,20 +77,24 @@ class SupervisedGraphsage(models.SampleAndAggregate):
         self.build()
 
     def build(self):
-        samples1, support_sizes1 = self.sample(self.inputs1, self.layer_infos)
-        num_samples = [layer_info.num_samples for layer_info in self.layer_infos]
-        self.outputs1, self.aggregators = self.aggregate(samples1, [self.features], self.dims, num_samples,
-                                                         support_sizes1, concat=self.concat, model_size=self.model_size)
-        dim_mult = 2 if self.concat else 1
+        with tf.variable_scope(self.name):
+            samples1, support_sizes1 = self.sample(self.inputs1, self.layer_infos)
+            num_samples = [layer_info.num_samples for layer_info in self.layer_infos]
+            self.outputs1, self.aggregators = self.aggregate(samples1, [self.features], self.dims, num_samples,
+                                                             support_sizes1, concat=self.concat, model_size=self.model_size)
+            self.outputs1 = tf.nn.l2_normalize(self.outputs1, 1)
 
-        self.outputs1 = tf.nn.l2_normalize(self.outputs1, 1)
+            dim_mult = 2 if self.concat else 1
 
-        dim_mult = 2 if self.concat else 1
-        self.node_pred = layers.Dense(dim_mult * self.dims[-1], self.num_classes,
-                                      dropout=self.placeholders['dropout'],
-                                      act=lambda x: x)
-        # TF graph management
-        self.node_preds = self.node_pred(self.outputs1)
+            self.node_pred = layers.Dense(dim_mult * self.dims[-1], self.num_classes,
+                                          dropout=self.placeholders['dropout'],
+                                          act=lambda x: x)
+            # TF graph management
+            self.node_preds = self.node_pred(self.outputs1)
+
+        # Store model variables for easy access
+        variables = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self.name)
+        self.vars = {var.name: var for var in variables}
 
         self._loss()
         grads_and_vars = self.optimizer.compute_gradients(self.loss)
@@ -99,6 +103,8 @@ class SupervisedGraphsage(models.SampleAndAggregate):
         self.grad, _ = clipped_grads_and_vars[0]
         self.opt_op = self.optimizer.apply_gradients(clipped_grads_and_vars)
         self.preds = self.predict()
+
+        self.opt_op = self.optimizer.minimize(self.loss)
 
     def _loss(self):
         # Weight decay loss

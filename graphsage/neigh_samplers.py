@@ -1,7 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 
-from graph_embedding_methods.graphsage.layers import Layer
+from graphsage.layers import Layer
 
 import tensorflow as tf
 
